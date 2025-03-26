@@ -6,7 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-r from-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
-    <div class="container mx-auto flex space-x-4">
+    <div id="mainContainer" class="container mx-auto flex justify-center space-x-4">
         <!-- Game Container -->
         <div class="bg-white p-8 rounded-xl shadow-2xl w-[500px]">
             <div class="mb-4">
@@ -44,8 +44,10 @@
             <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Decimal to Hex Converter</h2>
             <div class="space-y-4">
                 <div>
-                    <label for="decimalInput" class="block text-gray-700 font-bold mb-2">Decimal Value (0-255):</label>
-                    <input type="number" id="decimalInput" min="0" max="255" placeholder="Enter a number between 0-255" 
+                    <label for="decimalInput" class="block text-gray-700 font-bold mb-2">
+                        Input (Decimal 0-255 or Percentage 0-100%):
+                    </label>
+                    <input type="text" id="decimalInput" placeholder="Enter a number between 0-255 or 0-100%" 
                         class="w-full p-2 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
@@ -66,18 +68,18 @@
             <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Round History</h2>
             <div id="roundHistoryTable" class="overflow-auto max-h-[500px]"></div>
         </div>
+    </div>
 
-        <!-- Buttons Container -->
-        <div class="fixed top-4 right-4 flex space-x-2">
-            <button onclick="toggleConverter()" 
-                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
-                Open Decimal to Hex Converter
-            </button>
-            <button onclick="toggleRoundHistory()" 
-                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">
-                View Round History
-            </button>
-        </div>
+    <!-- Buttons Container -->
+    <div class="fixed top-4 right-4 flex space-x-2">
+        <button onclick="toggleConverter()" 
+            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
+            Open Decimal to Hex Converter
+        </button>
+        <button onclick="toggleRoundHistory()" 
+            class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">
+            View Round History
+        </button>
     </div>
 
     <script>
@@ -87,15 +89,36 @@
         let roundHistory = [];
 
         function toggleConverter() {
+            const mainContainer = document.getElementById('mainContainer');
             const converterContainer = document.getElementById('converterContainer');
-            converterContainer.style.display = converterContainer.style.display === 'none' || converterContainer.style.display === '' ? 'block' : 'none';
+            
+            if (converterContainer.style.display === 'none' || converterContainer.style.display === '') {
+                converterContainer.style.display = 'block';
+                mainContainer.classList.remove('justify-center');
+                mainContainer.classList.add('justify-start');
+            } else {
+                converterContainer.style.display = 'none';
+                mainContainer.classList.remove('justify-start');
+                mainContainer.classList.add('justify-center');
+            }
         }
 
         function toggleRoundHistory() {
+            const mainContainer = document.getElementById('mainContainer');
             const roundHistoryContainer = document.getElementById('roundHistoryContainer');
-            roundHistoryContainer.style.display = roundHistoryContainer.style.display === 'none' || roundHistoryContainer.style.display === '' ? 'block' : 'none';
+            
+            if (roundHistoryContainer.style.display === 'none' || roundHistoryContainer.style.display === '') {
+                roundHistoryContainer.style.display = 'block';
+                mainContainer.classList.remove('justify-center');
+                mainContainer.classList.add('justify-start');
+            } else {
+                roundHistoryContainer.style.display = 'none';
+                mainContainer.classList.remove('justify-start');
+                mainContainer.classList.add('justify-center');
+            }
         }
 
+        // Rest of the code remains the same as in the original script
         function updateRoundHistory() {
             const roundHistoryTable = document.getElementById('roundHistoryTable');
             let historyHTML = `
@@ -130,6 +153,7 @@
             roundHistoryTable.innerHTML = historyHTML;
         }
 
+        // The rest of the script (setupPlayers, convertDecimalToHex, etc.) remains the same as in the original code
         function convertDecimalToHex() {
             const decimalInput = document.getElementById('decimalInput');
             const hexOutput = document.getElementById('hexOutput');
@@ -137,12 +161,30 @@
             
             conversionError.textContent = '';
             
-            const decimalValue = parseInt(decimalInput.value);
-            
-            if (isNaN(decimalValue) || decimalValue < 0 || decimalValue > 255) {
-                conversionError.textContent = 'Please enter a number between 0 and 255!';
-                hexOutput.value = '';
-                return;
+            let inputValue = decimalInput.value.trim();
+            let decimalValue;
+
+            // Check if input is a percentage
+            if (inputValue.endsWith('%')) {
+                const percentValue = parseFloat(inputValue.slice(0, -1));
+                
+                if (isNaN(percentValue) || percentValue < 0 || percentValue > 100) {
+                    conversionError.textContent = 'Please enter a percentage between 0% and 100%!';
+                    hexOutput.value = '';
+                    return;
+                }
+                
+                // Convert percentage to 0-255 range
+                decimalValue = Math.round((percentValue / 100) * 255);
+            } else {
+                // Parse as decimal
+                decimalValue = parseInt(inputValue);
+                
+                if (isNaN(decimalValue) || decimalValue < 0 || decimalValue > 255) {
+                    conversionError.textContent = 'Please enter a number between 0 and 255!';
+                    hexOutput.value = '';
+                    return;
+                }
             }
             
             const hexValue = decimalValue.toString(16).toUpperCase().padStart(2, '0');
@@ -150,6 +192,7 @@
             hexOutput.value = hexValue;
         }
 
+        // Rest of the functions remain the same (setupPlayers, generateRandomColor, startNewRound, calculateScore, checkGuesses, endGame)
         function setupPlayers() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
             
