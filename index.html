@@ -12,7 +12,7 @@
             <div class="mb-4">
                 <label for="playerCount" class="block text-gray-700 font-bold mb-2">Number of Players:</label>
                 <div class="flex space-x-2">
-                    <input type="number" id="playerCount" min="2" max="10" value="3" 
+                    <input type="number" id="playerCount" min="1" max="10" value="1" 
                         class="w-full p-2 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
                     <button onclick="setupPlayers()" 
                         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
@@ -61,25 +61,73 @@
             </div>
         </div>
 
-        <!-- Toggle Converter Button -->
-        <button onclick="toggleConverter()" 
-            class="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
-            Open Decimal to Hex Converter
-        </button>
+        <!-- Round History Container -->
+        <div id="roundHistoryContainer" class="bg-white p-8 rounded-xl shadow-2xl w-[400px]" style="display:none;">
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Round History</h2>
+            <div id="roundHistoryTable" class="overflow-auto max-h-[500px]"></div>
+        </div>
+
+        <!-- Buttons Container -->
+        <div class="fixed top-4 right-4 flex space-x-2">
+            <button onclick="toggleConverter()" 
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
+                Open Decimal to Hex Converter
+            </button>
+            <button onclick="toggleRoundHistory()" 
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">
+                View Round History
+            </button>
+        </div>
     </div>
 
     <script>
         let targetColor = '';
         let currentRound = 1;
         let players = [];
+        let roundHistory = [];
 
         function toggleConverter() {
             const converterContainer = document.getElementById('converterContainer');
-            if (converterContainer.style.display === 'none' || converterContainer.style.display === '') {
-                converterContainer.style.display = 'block';
-            } else {
-                converterContainer.style.display = 'none';
-            }
+            converterContainer.style.display = converterContainer.style.display === 'none' || converterContainer.style.display === '' ? 'block' : 'none';
+        }
+
+        function toggleRoundHistory() {
+            const roundHistoryContainer = document.getElementById('roundHistoryContainer');
+            roundHistoryContainer.style.display = roundHistoryContainer.style.display === 'none' || roundHistoryContainer.style.display === '' ? 'block' : 'none';
+        }
+
+        function updateRoundHistory() {
+            const roundHistoryTable = document.getElementById('roundHistoryTable');
+            let historyHTML = `
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2">Round</th>
+                            <th class="border p-2">Target Color</th>
+                            ${players.map(player => `<th class="border p-2">${player.name} Guess</th>`).join('')}
+                            ${players.map(player => `<th class="border p-2">${player.name} Score</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            roundHistory.forEach((round, index) => {
+                historyHTML += `
+                    <tr>
+                        <td class="border p-2 text-center">${index + 1}</td>
+                        <td class="border p-2 text-center" style="background-color: ${round.targetColor};">${round.targetColor}</td>
+                        ${round.guesses.map(guess => `<td class="border p-2 text-center">${guess}</td>`).join('')}
+                        ${round.roundScores.map(score => `<td class="border p-2 text-center">${score}</td>`).join('')}
+                    </tr>
+                `;
+            });
+
+            historyHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            roundHistoryTable.innerHTML = historyHTML;
         }
 
         function convertDecimalToHex() {
@@ -87,44 +135,37 @@
             const hexOutput = document.getElementById('hexOutput');
             const conversionError = document.getElementById('conversionError');
             
-            // Clear previous error
             conversionError.textContent = '';
             
-            // Get the decimal value
             const decimalValue = parseInt(decimalInput.value);
             
-            // Validate input
             if (isNaN(decimalValue) || decimalValue < 0 || decimalValue > 255) {
                 conversionError.textContent = 'Please enter a number between 0 and 255!';
                 hexOutput.value = '';
                 return;
             }
             
-            // Convert to hex
             const hexValue = decimalValue.toString(16).toUpperCase().padStart(2, '0');
             
-            // Display result
             hexOutput.value = hexValue;
         }
 
         function setupPlayers() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
             
-            // Reset game state
             players = [];
             currentRound = 1;
+            roundHistory = [];
             
-            // Create player objects
             for (let i = 0; i < playerCount; i++) {
                 players.push({
-                    name: `Player ${i + 1}`, 
+                    name: playerCount === 1 ? 'Solo Player' : `Player ${i + 1}`, 
                     score: 0, 
                     roundScores: [], 
                     scoreElement: null
                 });
             }
             
-            // Render scoreboard
             const scoreboard = document.getElementById('scoreboard');
             scoreboard.innerHTML = '';
             scoreboard.style.display = 'flex';
@@ -138,7 +179,6 @@
                 player.scoreElement = scoreDiv;
             });
             
-            // Render player inputs
             const playerInputs = document.getElementById('playerInputs');
             playerInputs.innerHTML = '';
             playerInputs.style.display = 'block';
@@ -152,11 +192,9 @@
                 playerInputs.appendChild(input);
             });
             
-            // Show game elements
             document.getElementById('colorDisplay').style.display = 'block';
             document.getElementById('submitGuessesBtn').style.display = 'block';
             
-            // Start first round
             startNewRound();
         }
 
@@ -168,7 +206,6 @@
             targetColor = generateRandomColor();
             document.getElementById('colorDisplay').style.backgroundColor = targetColor;
             
-            // Clear inputs
             players.forEach((_, index) => {
                 document.getElementById(`player${index + 1}Guess`).value = '';
             });
@@ -200,7 +237,9 @@
         }
 
         function checkGuesses() {
-            // Collect guesses and calculate scores
+            const roundGuesses = [];
+            const roundScores = [];
+
             players.forEach((player, index) => {
                 const guess = document.getElementById(`player${index + 1}Guess`).value;
                 const roundScore = calculateScore(guess, targetColor);
@@ -208,10 +247,19 @@
                 player.score += roundScore;
                 player.roundScores.push(roundScore);
                 
-                // Update scoreboard
                 player.scoreElement.textContent = `${player.name}: ${player.score}`;
+                
+                roundGuesses.push(guess);
+                roundScores.push(roundScore);
             });
-            
+
+            // Store round history
+            roundHistory.push({
+                targetColor: targetColor,
+                guesses: roundGuesses,
+                roundScores: roundScores
+            });
+
             // Display results
             let resultsHTML = `Target Color: ${targetColor}<br>`;
             let roundScoresHTML = 'Round Scores:<br>';
@@ -222,6 +270,9 @@
             
             document.getElementById('results').innerHTML = resultsHTML;
             document.getElementById('roundScores').innerHTML = roundScoresHTML;
+
+            // Update round history table
+            updateRoundHistory();
             
             currentRound++;
             if (currentRound <= 5) {
@@ -247,6 +298,9 @@
             document.getElementById('results').innerHTML = resultsHTML;
             document.getElementById('submitGuessesBtn').disabled = true;
             document.getElementById('submitGuessesBtn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Ensure final round history is updated
+            updateRoundHistory();
         }
     </script>
 </body>
