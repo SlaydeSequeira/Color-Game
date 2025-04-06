@@ -36,7 +36,7 @@
             
             <div id="results" class="mt-4 text-center"></div>
             <div id="roundInfo" class="mt-2 text-center font-semibold"></div>
-            <div id="roundScores" class="mt-2 text-center"></div>
+            <div id="roundScores" class="mt-2 space-y-2"></div>
         </div>
 
         <!-- Decimal to Hex Converter Container -->
@@ -118,7 +118,6 @@
             }
         }
 
-        // Rest of the code remains the same as in the original script
         function updateRoundHistory() {
             const roundHistoryTable = document.getElementById('roundHistoryTable');
             let historyHTML = `
@@ -139,7 +138,10 @@
                     <tr>
                         <td class="border p-2 text-center">${index + 1}</td>
                         <td class="border p-2 text-center" style="background-color: ${round.targetColor};">${round.targetColor}</td>
-                        ${round.guesses.map(guess => `<td class="border p-2 text-center">${guess}</td>`).join('')}
+                        ${round.guesses.map(guess => {
+                            const formattedGuess = guess.startsWith('#') ? guess : '#' + guess;
+                            return `<td class="border p-2 text-center" style="background-color: ${formattedGuess};">${formattedGuess}</td>`;
+                        }).join('')}
                         ${round.roundScores.map(score => `<td class="border p-2 text-center">${score}</td>`).join('')}
                     </tr>
                 `;
@@ -153,7 +155,6 @@
             roundHistoryTable.innerHTML = historyHTML;
         }
 
-        // The rest of the script (setupPlayers, convertDecimalToHex, etc.) remains the same as in the original code
         function convertDecimalToHex() {
             const decimalInput = document.getElementById('decimalInput');
             const hexOutput = document.getElementById('hexOutput');
@@ -192,7 +193,6 @@
             hexOutput.value = hexValue;
         }
 
-        // Rest of the functions remain the same (setupPlayers, generateRandomColor, startNewRound, calculateScore, checkGuesses, endGame)
         function setupPlayers() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
             
@@ -279,6 +279,11 @@
             return Math.round(((maxDistance - distance) / maxDistance) * 100);
         }
 
+        function formatHexColor(color) {
+            if (!color) return '#000000';
+            return color.startsWith('#') ? color : '#' + color;
+        }
+
         function checkGuesses() {
             const roundGuesses = [];
             const roundScores = [];
@@ -304,11 +309,23 @@
             });
 
             // Display results
-            let resultsHTML = `Target Color: ${targetColor}<br>`;
-            let roundScoresHTML = 'Round Scores:<br>';
-            players.forEach((player) => {
-                resultsHTML += `${player.name} Total Score: ${player.score}<br>`;
-                roundScoresHTML += `${player.name}: +${player.roundScores[currentRound-1]}<br>`;
+            let resultsHTML = `<div class="flex items-center justify-center gap-2 mb-4">
+                <div>Target Color: ${targetColor}</div>
+                <div class="w-6 h-6 rounded border border-gray-300" style="background-color: ${targetColor};"></div>
+            </div>`;
+            
+            // Create round scores with color display
+            let roundScoresHTML = '';
+            players.forEach((player, idx) => {
+                const formattedGuess = formatHexColor(roundGuesses[idx]);
+                roundScoresHTML += `
+                <div class="flex items-center justify-between bg-gray-100 p-2 rounded">
+                    <div class="flex items-center gap-2">
+                        <div>${player.name} guess: ${formattedGuess}</div>
+                        <div class="w-6 h-6 rounded border border-gray-300" style="background-color: ${formattedGuess};"></div>
+                    </div>
+                    <div class="font-bold">+${player.roundScores[currentRound-1]} points</div>
+                </div>`;
             });
             
             document.getElementById('results').innerHTML = resultsHTML;
@@ -327,16 +344,20 @@
 
         function endGame() {
             let winner = players.reduce((a, b) => a.score > b.score ? a : b);
-            let resultsHTML = '<h2 class="text-2xl font-bold">Game Over!</h2>';
-            resultsHTML += 'Round Scores:<br>';
+            
+            let resultsHTML = '<h2 class="text-2xl font-bold mb-4">Game Over!</h2>';
+            resultsHTML += '<div class="bg-gray-100 p-4 rounded mb-4">';
+            
             players.forEach((player) => {
-                resultsHTML += `${player.name}: `;
+                resultsHTML += `<div class="mb-2"><strong>${player.name}</strong>: `;
                 player.roundScores.forEach((score, roundIndex) => {
                     resultsHTML += `Round ${roundIndex + 1}: ${score} `;
                 });
-                resultsHTML += `<br>Total: ${player.score}<br>`;
+                resultsHTML += `<br>Total: <span class="font-bold">${player.score}</span></div>`;
             });
-            resultsHTML += `🏆 Winner: ${winner.name} with ${winner.score} points!`;
+            
+            resultsHTML += '</div>';
+            resultsHTML += `<div class="text-xl font-bold text-green-600">🏆 Winner: ${winner.name} with ${winner.score} points!</div>`;
             
             document.getElementById('results').innerHTML = resultsHTML;
             document.getElementById('submitGuessesBtn').disabled = true;
