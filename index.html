@@ -2,159 +2,408 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Color Guess Challenge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Color Guess Challenge</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 </head>
-<body class="bg-gradient-to-r from-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
-    <div id="mainContainer" class="container mx-auto flex justify-center space-x-4">
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+    <div id="mainContainer" class="container mx-auto flex flex-wrap justify-center gap-6">
         <!-- Game Container -->
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-[500px]">
-            <div class="mb-4">
-                <label for="playerCount" class="block text-gray-700 font-bold mb-2">Number of Players:</label>
-                <div class="flex space-x-2">
-                    <input type="number" id="playerCount" min="1" max="10" value="1" 
-                        class="w-full p-2 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
-                    <button onclick="setupPlayers()" 
-                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
-                        Start Game
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-[550px]">
+            <!-- Game Mode Selection -->
+            <div id="gameModeSelection" class="mb-6">
+                <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Color Guess Challenge 🎨</h1>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="selectGameMode('classic')" 
+                        class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition duration-300 flex flex-col items-center">
+                        <span class="text-xl font-bold">Classic Mode</span>
+                        <span class="text-sm mt-1">Guess the displayed color</span>
+                    </button>
+                    <button onclick="selectGameMode('blind')" 
+                        class="bg-purple-500 text-white px-4 py-3 rounded-lg hover:bg-purple-600 transition duration-300 flex flex-col items-center">
+                        <span class="text-xl font-bold">Colorblind Mode</span>
+                        <span class="text-sm mt-1">Guess from RGB values</span>
+                    </button>
+                    <button onclick="selectGameMode('memory')" 
+                        class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition duration-300 flex flex-col items-center">
+                        <span class="text-xl font-bold">Memory Mode</span>
+                        <span class="text-sm mt-1">Remember and recreate colors</span>
+                    </button>
+                    <button onclick="selectGameMode('challenge')" 
+                        class="bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition duration-300 flex flex-col items-center">
+                        <span class="text-xl font-bold">Challenge Mode</span>
+                        <span class="text-sm mt-1">Limited time to guess</span>
                     </button>
                 </div>
             </div>
 
-            <div id="scoreboard" class="flex flex-wrap justify-between mb-4 bg-gray-100 p-4 rounded-lg" style="display:none;"></div>
-
-            <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Color Guess Challenge 🎨</h1>
-            
-            <div id="colorDisplay" class="h-40 w-full mb-6 rounded-lg shadow-md" style="display:none;"></div>
-            
-            <div id="playerInputs" class="space-y-4" style="display:none;"></div>
-            
-            <div id="validationError" class="text-red-500 text-center mt-2" style="display:none;"></div>
-            
-            <button id="submitGuessesBtn" onclick="validateAndSubmit()" 
-                class="w-full mt-4 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition duration-300" style="display:none;">
-                Submit Guesses
-            </button>
-            
-            <div id="results" class="mt-4 text-center"></div>
-            <div id="roundInfo" class="mt-2 text-center font-semibold"></div>
-            <div id="roundScores" class="mt-2 space-y-2"></div>
-        </div>
-
-        <!-- Decimal to Hex Converter Container -->
-        <div id="converterContainer" class="bg-white p-8 rounded-xl shadow-2xl w-[400px]" style="display:none;">
-            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Decimal to Hex Converter</h2>
-            <div class="space-y-4">
-                <div>
-                    <label for="decimalInput" class="block text-gray-700 font-bold mb-2">
-                        Input (Decimal 0-255 or Percentage 0-100%):
-                    </label>
-                    <input type="text" id="decimalInput" placeholder="Enter a number between 0-255 or 0-100%" 
-                        class="w-full p-2 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
+            <!-- Player Setup -->
+            <div id="playerSetup" class="mb-4" style="display:none;">
+                <h2 class="text-2xl font-bold text-center mb-4 text-gray-800">Player Setup</h2>
+                <label for="playerCount" class="block text-gray-700 font-bold mb-2">Number of Players:</label>
+                <div class="flex space-x-2">
+                    <input type="number" id="playerCount" min="1" max="10" value="1" 
+                        class="w-full p-2.5 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                    <button id="startGameButton" onclick="setupPlayers()" 
+                        class="bg-blue-500 text-white px-4 py-2.5 rounded hover:bg-blue-600 transition duration-300">
+                        Start Game
+                    </button>
                 </div>
-                <div>
-                    <label for="hexOutput" class="block text-gray-700 font-bold mb-2">Hexadecimal Value:</label>
-                    <input type="text" id="hexOutput" readonly 
-                        class="w-full p-2 bg-gray-100 rounded">
+                <div class="flex items-center mt-3">
+                    <input type="checkbox" id="customPlayerNames" class="mr-2 h-5 w-5">
+                    <label for="customPlayerNames" class="text-gray-700">Use custom player names</label>
                 </div>
-                <button onclick="convertDecimalToHex()" 
-                    class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 transition duration-300">
-                    Convert
+                <div id="customNameFields" class="mt-3 space-y-2" style="display:none;"></div>
+            </div>
+
+            <!-- Game Area -->
+            <div id="gameArea" style="display:none;">
+                <div id="scoreboard" class="flex flex-wrap justify-between mb-4 bg-gray-100 p-4 rounded-lg"></div>
+
+                <h1 id="gameModeTitle" class="text-3xl font-bold text-center mb-3 text-gray-800">Color Guess Challenge 🎨</h1>
+                <div id="gameDescription" class="text-gray-600 text-center mb-4"></div>
+                
+                <div id="memoryColorDisplay" class="h-40 w-full mb-6 rounded-lg shadow-md flex items-center justify-center" style="display:none;">
+                    <div class="text-2xl font-bold text-gray-800">Remember this color!</div>
+                </div>
+
+                <div id="colorDisplay" class="h-40 w-full mb-6 rounded-lg shadow-md" style="display:none;"></div>
+                <div id="colorValues" class="mb-4 text-center font-mono text-lg" style="display:none;"></div>
+                
+                <div id="timerDisplay" class="mb-4 w-full bg-gray-200 rounded-full h-4" style="display:none;">
+                    <div id="timerBar" class="bg-blue-600 h-4 rounded-full" style="width: 100%"></div>
+                </div>
+                
+                <div id="playerInputs" class="space-y-4" style="display:none;"></div>
+                
+                <div id="validationError" class="text-red-500 text-center mt-2" style="display:none;"></div>
+                
+                <button id="submitGuessesBtn" onclick="validateAndSubmit()" 
+                    class="w-full mt-4 bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 transition duration-300" style="display:none;">
+                    Submit Guesses
                 </button>
-                <div id="conversionError" class="text-red-500 text-center mt-2"></div>
+                
+                <div id="results" class="mt-4 text-center"></div>
+                <div id="roundInfo" class="mt-2 text-center font-semibold"></div>
+                <div id="roundScores" class="mt-2 space-y-2"></div>
             </div>
         </div>
 
-        <!-- Round History Container -->
-        <div id="roundHistoryContainer" class="bg-white p-8 rounded-xl shadow-2xl w-[400px]" style="display:none;">
-            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Round History</h2>
-            <div id="roundHistoryTable" class="overflow-auto max-h-[500px]"></div>
+        <!-- Tools Container -->
+        <div id="toolsContainer" class="w-full max-w-[400px]" style="display:none;">
+            <!-- Decimal to Hex Converter -->
+            <div id="converterContainer" class="bg-white p-6 rounded-xl shadow-2xl mb-6">
+                <h2 class="text-2xl font-bold text-center mb-4 text-gray-800">Color Converter</h2>
+                <div class="space-y-4">
+                    <!-- Tabs -->
+                    <div class="flex border-b">
+                        <button id="decToHexTab" onclick="switchConverterTab('decToHex')" 
+                            class="py-2 px-4 border-b-2 border-blue-500 text-blue-500 font-medium">
+                            Dec → Hex
+                        </button>
+                        <button id="hexToRgbTab" onclick="switchConverterTab('hexToRgb')" 
+                            class="py-2 px-4 border-b-2 border-transparent text-gray-500 font-medium">
+                            Hex → RGB
+                        </button>
+                        <button id="colorPickerTab" onclick="switchConverterTab('colorPicker')" 
+                            class="py-2 px-4 border-b-2 border-transparent text-gray-500 font-medium">
+                            Color Picker
+                        </button>
+                    </div>
+
+                    <!-- Dec to Hex Tab -->
+                    <div id="decToHexContent">
+                        <div>
+                            <label for="decimalInput" class="block text-gray-700 font-bold mb-2">
+                                Input (Decimal 0-255 or Percentage 0-100%):
+                            </label>
+                            <input type="text" id="decimalInput" placeholder="Enter a number between 0-255 or 0-100%" 
+                                class="w-full p-2.5 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="mt-3">
+                            <label for="hexOutput" class="block text-gray-700 font-bold mb-2">Hexadecimal Value:</label>
+                            <input type="text" id="hexOutput" readonly 
+                                class="w-full p-2.5 bg-gray-100 rounded">
+                        </div>
+                        <button onclick="convertDecimalToHex()" 
+                            class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 transition duration-300">
+                            Convert
+                        </button>
+                    </div>
+
+                    <!-- Hex to RGB Tab -->
+                    <div id="hexToRgbContent" style="display:none;">
+                        <div>
+                            <label for="hexInput" class="block text-gray-700 font-bold mb-2">
+                                Hex Color Code:
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    #
+                                </div>
+                                <input type="text" id="hexInput" placeholder="e.g. FF0000" 
+                                    class="w-full p-2.5 pl-7 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div class="mt-3 grid grid-cols-3 gap-2">
+                            <div>
+                                <label for="rgbOutputR" class="block text-gray-700 font-bold mb-2">Red:</label>
+                                <input type="text" id="rgbOutputR" readonly class="w-full p-2.5 bg-gray-100 rounded">
+                            </div>
+                            <div>
+                                <label for="rgbOutputG" class="block text-gray-700 font-bold mb-2">Green:</label>
+                                <input type="text" id="rgbOutputG" readonly class="w-full p-2.5 bg-gray-100 rounded">
+                            </div>
+                            <div>
+                                <label for="rgbOutputB" class="block text-gray-700 font-bold mb-2">Blue:</label>
+                                <input type="text" id="rgbOutputB" readonly class="w-full p-2.5 bg-gray-100 rounded">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-gray-700 font-bold mb-2">Color Preview:</label>
+                            <div id="hexColorPreview" class="h-16 w-full rounded-lg border border-gray-300"></div>
+                        </div>
+                        <button onclick="convertHexToRgb()" 
+                            class="w-full mt-4 bg-green-500 text-white py-2 rounded hover:bg-green-600 transition duration-300">
+                            Convert
+                        </button>
+                    </div>
+
+                    <!-- Color Picker Tab -->
+                    <div id="colorPickerContent" style="display:none;">
+                        <div>
+                            <label for="colorPicker" class="block text-gray-700 font-bold mb-2">
+                                Pick a Color:
+                            </label>
+                            <input type="color" id="colorPicker" 
+                                class="w-full h-12 p-1 border-2 border-gray-300 rounded cursor-pointer">
+                        </div>
+                        <div class="mt-3 grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">Hex Code:</label>
+                                <input type="text" id="pickerHexOutput" readonly 
+                                    class="w-full p-2.5 bg-gray-100 rounded">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-bold mb-2">RGB Values:</label>
+                                <input type="text" id="pickerRgbOutput" readonly 
+                                    class="w-full p-2.5 bg-gray-100 rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="conversionError" class="text-red-500 text-center mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Round History Container -->
+            <div id="roundHistoryContainer" class="bg-white p-6 rounded-xl shadow-2xl">
+                <h2 class="text-2xl font-bold text-center mb-4 text-gray-800">Round History</h2>
+                <div id="roundHistoryTable" class="overflow-auto max-h-[300px]"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Game Help</h2>
+                <button onclick="toggleHelp()" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-lg font-bold">Game Modes</h3>
+                    <ul class="list-disc ml-5 mt-1">
+                        <li><strong>Classic Mode:</strong> Guess the displayed color with hex codes or RGB values</li>
+                        <li><strong>Colorblind Mode:</strong> Guess the color from its RGB values (no visual)</li>
+                        <li><strong>Memory Mode:</strong> Color is displayed briefly, then you must recreate it</li>
+                        <li><strong>Challenge Mode:</strong> Race against the clock to guess colors</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">Scoring</h3>
+                    <p>Scores are calculated based on how close your guess is to the target color. A perfect match is 100 points.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">Input Types</h3>
+                    <ul class="list-disc ml-5 mt-1">
+                        <li><strong>Hex Code:</strong> Six-digit hexadecimal value (e.g., FF0000 for red)</li>
+                        <li><strong>RGB Values:</strong> Red, Green, and Blue values from 0-255</li>
+                        <li><strong>Color Picker:</strong> Available in some game modes</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">Tools</h3>
+                    <p>Use the color converter to switch between different color formats and help with your guesses.</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Buttons Container -->
     <div class="fixed top-4 right-4 flex space-x-2">
-        <button onclick="toggleConverter()" 
+        <button onclick="toggleTools()" 
             class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">
-            Open Decimal to Hex Converter
+            <span id="toolsButtonText">Show Tools</span>
         </button>
-        <button onclick="toggleRoundHistory()" 
+        <button onclick="toggleHelp()" 
             class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300">
-            View Round History
+            Help
         </button>
     </div>
 
     <script>
         let targetColor = '';
+        let gameMode = '';
         let currentRound = 1;
+        let maxRounds = 5;
         let players = [];
         let roundHistory = [];
+        let timerInterval;
+        let timeRemaining;
+        let memoryTimer;
+        let toolsVisible = false;
 
-        function toggleConverter() {
-            const mainContainer = document.getElementById('mainContainer');
-            const converterContainer = document.getElementById('converterContainer');
+        // Initialize the game
+        window.onload = function() {
+            document.getElementById('colorPicker').addEventListener('input', updateColorPickerOutputs);
+            initializeGame();
+        };
+
+        function initializeGame() {
+            document.getElementById('gameModeSelection').style.display = 'block';
+            document.getElementById('playerSetup').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('toolsContainer').style.display = 'none';
             
-            if (converterContainer.style.display === 'none' || converterContainer.style.display === '') {
-                converterContainer.style.display = 'block';
-                mainContainer.classList.remove('justify-center');
-                mainContainer.classList.add('justify-start');
-            } else {
-                converterContainer.style.display = 'none';
-                mainContainer.classList.remove('justify-start');
-                mainContainer.classList.add('justify-center');
-            }
-        }
-
-        function toggleRoundHistory() {
-            const mainContainer = document.getElementById('mainContainer');
-            const roundHistoryContainer = document.getElementById('roundHistoryContainer');
-            
-            if (roundHistoryContainer.style.display === 'none' || roundHistoryContainer.style.display === '') {
-                roundHistoryContainer.style.display = 'block';
-                mainContainer.classList.remove('justify-center');
-                mainContainer.classList.add('justify-start');
-            } else {
-                roundHistoryContainer.style.display = 'none';
-                mainContainer.classList.remove('justify-start');
-                mainContainer.classList.add('justify-center');
-            }
-        }
-
-        function updateRoundHistory() {
-            const roundHistoryTable = document.getElementById('roundHistoryTable');
-            let historyHTML = `
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="bg-gray-200">
-                            <th class="border p-2">Round</th>
-                            <th class="border p-2">Target Color</th>
-                            ${players.map(player => `<th class="border p-2">${player.name} Guess</th>`).join('')}
-                            ${players.map(player => `<th class="border p-2">${player.name} Score</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            roundHistory.forEach((round, index) => {
-                historyHTML += `
-                    <tr>
-                        <td class="border p-2 text-center">${index + 1}</td>
-                        <td class="border p-2 text-center" style="background-color: ${round.targetColor};">${round.targetColor}</td>
-                        ${round.guesses.map(guess => {
-                            const formattedGuess = guess.startsWith('#') ? guess : '#' + guess;
-                            return `<td class="border p-2 text-center" style="background-color: ${formattedGuess};">${formattedGuess}</td>`;
-                        }).join('')}
-                        ${round.roundScores.map(score => `<td class="border p-2 text-center">${score}</td>`).join('')}
-                    </tr>
-                `;
+            // Initialize custom player names functionality
+            document.getElementById('customPlayerNames').addEventListener('change', function() {
+                toggleCustomNameFields();
             });
 
-            historyHTML += `
-                    </tbody>
-                </table>
-            `;
+            document.getElementById('playerCount').addEventListener('input', function() {
+                if (document.getElementById('customPlayerNames').checked) {
+                    updateCustomNameFields();
+                }
+            });
+        }
 
-            roundHistoryTable.innerHTML = historyHTML;
+        function toggleCustomNameFields() {
+            const customNameFields = document.getElementById('customNameFields');
+            const isChecked = document.getElementById('customPlayerNames').checked;
+            
+            if (isChecked) {
+                customNameFields.style.display = 'block';
+                updateCustomNameFields();
+            } else {
+                customNameFields.style.display = 'none';
+            }
+        }
+
+        function updateCustomNameFields() {
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 1;
+            const container = document.getElementById('customNameFields');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < playerCount; i++) {
+                const field = document.createElement('div');
+                field.innerHTML = `
+                    <label for="playerName${i+1}" class="block text-sm text-gray-700 mb-1">Player ${i+1} Name:</label>
+                    <input type="text" id="playerName${i+1}" class="w-full p-2 border-2 border-gray-300 rounded focus:outline-none focus:border-blue-500" 
+                           placeholder="Enter name">
+                `;
+                container.appendChild(field);
+            }
+        }
+
+        function selectGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('gameModeSelection').style.display = 'none';
+            document.getElementById('playerSetup').style.display = 'block';
+            
+            // Set the round count based on game mode
+            switch(mode) {
+                case 'classic':
+                    maxRounds = 5;
+                    break;
+                case 'blind':
+                    maxRounds = 5;
+                    break;
+                case 'memory':
+                    maxRounds = 3;
+                    break;
+                case 'challenge':
+                    maxRounds = 7;
+                    break;
+            }
+        }
+
+        function toggleTools() {
+            toolsVisible = !toolsVisible;
+            const toolsContainer = document.getElementById('toolsContainer');
+            const mainContainer = document.getElementById('mainContainer');
+            const toolsButtonText = document.getElementById('toolsButtonText');
+            
+            if (toolsVisible) {
+                toolsContainer.style.display = 'block';
+                mainContainer.classList.remove('justify-center');
+                mainContainer.classList.add('justify-around');
+                toolsButtonText.textContent = 'Hide Tools';
+            } else {
+                toolsContainer.style.display = 'none';
+                mainContainer.classList.remove('justify-around');
+                mainContainer.classList.add('justify-center');
+                toolsButtonText.textContent = 'Show Tools';
+            }
+        }
+
+        function toggleHelp() {
+            const helpModal = document.getElementById('helpModal');
+            if (helpModal.style.display === 'none' || helpModal.style.display === '') {
+                helpModal.style.display = 'flex';
+            } else {
+                helpModal.style.display = 'none';
+            }
+        }
+
+        function switchConverterTab(tab) {
+            // Hide all contents
+            document.getElementById('decToHexContent').style.display = 'none';
+            document.getElementById('hexToRgbContent').style.display = 'none';
+            document.getElementById('colorPickerContent').style.display = 'none';
+            
+            // Deactivate all tabs
+            document.getElementById('decToHexTab').classList.remove('border-blue-500', 'text-blue-500');
+            document.getElementById('decToHexTab').classList.add('border-transparent', 'text-gray-500');
+            document.getElementById('hexToRgbTab').classList.remove('border-blue-500', 'text-blue-500');
+            document.getElementById('hexToRgbTab').classList.add('border-transparent', 'text-gray-500');
+            document.getElementById('colorPickerTab').classList.remove('border-blue-500', 'text-blue-500');
+            document.getElementById('colorPickerTab').classList.add('border-transparent', 'text-gray-500');
+            
+            // Activate selected tab
+            switch(tab) {
+                case 'decToHex':
+                    document.getElementById('decToHexContent').style.display = 'block';
+                    document.getElementById('decToHexTab').classList.remove('border-transparent', 'text-gray-500');
+                    document.getElementById('decToHexTab').classList.add('border-blue-500', 'text-blue-500');
+                    break;
+                case 'hexToRgb':
+                    document.getElementById('hexToRgbContent').style.display = 'block';
+                    document.getElementById('hexToRgbTab').classList.remove('border-transparent', 'text-gray-500');
+                    document.getElementById('hexToRgbTab').classList.add('border-blue-500', 'text-blue-500');
+                    break;
+                case 'colorPicker':
+                    document.getElementById('colorPickerContent').style.display = 'block';
+                    document.getElementById('colorPickerTab').classList.remove('border-transparent', 'text-gray-500');
+                    document.getElementById('colorPickerTab').classList.add('border-blue-500', 'text-blue-500');
+                    break;
+            }
         }
 
         function convertDecimalToHex() {
@@ -195,6 +444,56 @@
             hexOutput.value = hexValue;
         }
 
+        function convertHexToRgb() {
+            const hexInput = document.getElementById('hexInput');
+            const rgbOutputR = document.getElementById('rgbOutputR');
+            const rgbOutputG = document.getElementById('rgbOutputG');
+            const rgbOutputB = document.getElementById('rgbOutputB');
+            const hexColorPreview = document.getElementById('hexColorPreview');
+            const conversionError = document.getElementById('conversionError');
+            
+            conversionError.textContent = '';
+            
+            let hexValue = hexInput.value.trim();
+            if (hexValue.startsWith('#')) {
+                hexValue = hexValue.substring(1);
+            }
+            
+            if (!validateHexColor(hexValue)) {
+                conversionError.textContent = 'Please enter a valid 6-digit hex color code';
+                rgbOutputR.value = '';
+                rgbOutputG.value = '';
+                rgbOutputB.value = '';
+                hexColorPreview.style.backgroundColor = '';
+                return;
+            }
+            
+            const r = parseInt(hexValue.substring(0, 2), 16);
+            const g = parseInt(hexValue.substring(2, 4), 16);
+            const b = parseInt(hexValue.substring(4, 6), 16);
+            
+            rgbOutputR.value = r;
+            rgbOutputG.value = g;
+            rgbOutputB.value = b;
+            hexColorPreview.style.backgroundColor = `#${hexValue}`;
+        }
+
+        function updateColorPickerOutputs() {
+            const colorPicker = document.getElementById('colorPicker');
+            const pickerHexOutput = document.getElementById('pickerHexOutput');
+            const pickerRgbOutput = document.getElementById('pickerRgbOutput');
+            
+            const color = colorPicker.value;
+            pickerHexOutput.value = color.toUpperCase();
+            
+            // Convert hex to RGB
+            const r = parseInt(color.substring(1, 3), 16);
+            const g = parseInt(color.substring(3, 5), 16);
+            const b = parseInt(color.substring(5, 7), 16);
+            
+            pickerRgbOutput.value = `rgb(${r}, ${g}, ${b})`;
+        }
+
         function createInputOption(player, index) {
             const inputContainer = document.createElement('div');
             inputContainer.className = 'mb-4';
@@ -210,26 +509,44 @@
             const inputSelect = document.createElement('select');
             inputSelect.id = `player${index + 1}InputType`;
             inputSelect.className = 'p-1 border rounded';
-            inputSelect.innerHTML = `
-                <option value="hex">Hex Code</option>
-                <option value="rgb">RGB Values</option>
-            `;
+            
+            // Different input options based on game mode
+            if (gameMode === 'blind' || gameMode === 'memory') {
+                inputSelect.innerHTML = `
+                    <option value="rgb">RGB Values</option>
+                    <option value="hex">Hex Code</option>
+                `;
+            } else {
+                inputSelect.innerHTML = `
+                    <option value="hex">Hex Code</option>
+                    <option value="rgb">RGB Values</option>
+                    <option value="picker">Color Picker</option>
+                `;
+            }
+            
             inputSelect.onchange = () => toggleInputType(index + 1);
             
             inputTypeDiv.appendChild(inputLabel);
             inputTypeDiv.appendChild(inputSelect);
             inputContainer.appendChild(inputTypeDiv);
             
-            // Hex input (default)
+            const colorArray = ['blue', 'green', 'red', 'purple', 'orange', 'teal', 'indigo', 'pink'];
+            const playerColor = colorArray[index % colorArray.length];
+            
+            // Hex input (default for classic and challenge modes)
             const hexInputDiv = document.createElement('div');
             hexInputDiv.id = `player${index + 1}HexInput`;
             hexInputDiv.className = 'relative';
+            
+            if (gameMode === 'blind' || gameMode === 'memory') {
+                hexInputDiv.style.display = 'none';
+            }
             
             const hexInput = document.createElement('input');
             hexInput.type = 'text';
             hexInput.id = `player${index + 1}Guess`;
             hexInput.placeholder = 'Enter hex code (e.g. FF0000)';
-            hexInput.className = `pl-7 w-full p-2 border-2 border-${['blue','green','red','purple','orange','teal','indigo','pink'][index]}-300 rounded focus:outline-none focus:border-${['blue','green','red','purple','orange','teal','indigo','pink'][index]}-500`;
+            hexInput.className = `pl-7 w-full p-2.5 border-2 border-${playerColor}-300 rounded focus:outline-none focus:border-${playerColor}-500`;
             
             // Add # prefix
             const hashPrefix = document.createElement('div');
@@ -240,11 +557,14 @@
             hexInputDiv.appendChild(hexInput);
             inputContainer.appendChild(hexInputDiv);
             
-            // RGB inputs (hidden by default)
+            // RGB inputs (default for blind and memory modes)
             const rgbInputDiv = document.createElement('div');
             rgbInputDiv.id = `player${index + 1}RgbInput`;
             rgbInputDiv.className = 'flex space-x-2';
-            rgbInputDiv.style.display = 'none';
+            
+            if (gameMode !== 'blind' && gameMode !== 'memory') {
+                rgbInputDiv.style.display = 'none';
+            }
             
             const rgbComponents = ['R', 'G', 'B'];
             rgbComponents.forEach(component => {
@@ -261,7 +581,7 @@
                 componentInput.min = 0;
                 componentInput.max = 255;
                 componentInput.placeholder = '0-255';
-                componentInput.className = `w-full p-2 border-2 border-${['blue','green','red','purple','orange','teal','indigo','pink'][index]}-300 rounded focus:outline-none focus:border-${['blue','green','red','purple','orange','teal','indigo','pink'][index]}-500`;
+                componentInput.className = `w-full p-2.5 border-2 border-${playerColor}-300 rounded focus:outline-none focus:border-${playerColor}-500`;
                 
                 componentDiv.appendChild(componentLabel);
                 componentDiv.appendChild(componentInput);
@@ -270,269 +590,4 @@
             
             inputContainer.appendChild(rgbInputDiv);
             
-            return inputContainer;
-        }
-
-        function toggleInputType(playerIndex) {
-            const inputType = document.getElementById(`player${playerIndex}InputType`).value;
-            const hexInput = document.getElementById(`player${playerIndex}HexInput`);
-            const rgbInput = document.getElementById(`player${playerIndex}RgbInput`);
-            
-            if (inputType === 'hex') {
-                hexInput.style.display = 'block';
-                rgbInput.style.display = 'none';
-            } else {
-                hexInput.style.display = 'none';
-                rgbInput.style.display = 'flex';
-            }
-        }
-
-        function getPlayerGuess(playerIndex) {
-            const inputType = document.getElementById(`player${playerIndex}InputType`).value;
-            
-            if (inputType === 'hex') {
-                let guess = document.getElementById(`player${playerIndex}Guess`).value.trim();
-                // Remove # if present for consistency
-                return guess.startsWith('#') ? guess.substring(1) : guess;
-            } else {
-                const r = parseInt(document.getElementById(`player${playerIndex}R`).value || 0);
-                const g = parseInt(document.getElementById(`player${playerIndex}G`).value || 0);
-                const b = parseInt(document.getElementById(`player${playerIndex}B`).value || 0);
-                
-                return rgbToHex(r, g, b);
-            }
-        }
-
-        function rgbToHex(r, g, b) {
-            return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-        }
-
-        function setupPlayers() {
-            const playerCount = parseInt(document.getElementById('playerCount').value);
-            
-            players = [];
-            currentRound = 1;
-            roundHistory = [];
-            
-            for (let i = 0; i < playerCount; i++) {
-                players.push({
-                    name: playerCount === 1 ? 'Solo Player' : `Player ${i + 1}`, 
-                    score: 0, 
-                    roundScores: [], 
-                    scoreElement: null
-                });
-            }
-            
-            const scoreboard = document.getElementById('scoreboard');
-            scoreboard.innerHTML = '';
-            scoreboard.style.display = 'flex';
-            
-            players.forEach((player, index) => {
-                const scoreDiv = document.createElement('div');
-                scoreDiv.id = `player${index + 1}Score`;
-                scoreDiv.className = `text-${['blue','green','red','purple','orange','teal','indigo','pink'][index]}-600 font-bold`;
-                scoreDiv.textContent = `${player.name}: 0`;
-                scoreboard.appendChild(scoreDiv);
-                player.scoreElement = scoreDiv;
-            });
-            
-            const playerInputs = document.getElementById('playerInputs');
-            playerInputs.innerHTML = '';
-            playerInputs.style.display = 'block';
-            
-            players.forEach((player, index) => {
-                playerInputs.appendChild(createInputOption(player, index));
-            });
-            
-            document.getElementById('colorDisplay').style.display = 'block';
-            document.getElementById('submitGuessesBtn').style.display = 'block';
-            document.getElementById('validationError').style.display = 'none';
-            
-            startNewRound();
-        }
-
-        function generateRandomColor() {
-            return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-        }
-
-        function startNewRound() {
-            targetColor = generateRandomColor();
-            document.getElementById('colorDisplay').style.backgroundColor = targetColor;
-            
-            // Reset all input fields
-            players.forEach((_, index) => {
-                const playerIndex = index + 1;
-                document.getElementById(`player${playerIndex}Guess`).value = '';
-                
-                // Reset RGB inputs if they exist
-                if (document.getElementById(`player${playerIndex}R`)) {
-                    document.getElementById(`player${playerIndex}R`).value = '';
-                    document.getElementById(`player${playerIndex}G`).value = '';
-                    document.getElementById(`player${playerIndex}B`).value = '';
-                }
-            });
-            
-            document.getElementById('results').innerHTML = '';
-            document.getElementById('roundInfo').innerHTML = `Round ${currentRound} of 5`;
-            document.getElementById('roundScores').innerHTML = '';
-            document.getElementById('validationError').style.display = 'none';
-        }
-
-        function validateHexColor(hex) {
-            const hexRegex = /^[0-9A-Fa-f]{6}$/;
-            return hexRegex.test(hex);
-        }
-
-        function validateAndSubmit() {
-            document.getElementById('validationError').style.display = 'none';
-            let isValid = true;
-            let errorMessage = '';
-            
-            players.forEach((_, index) => {
-                const playerIndex = index + 1;
-                const inputType = document.getElementById(`player${playerIndex}InputType`).value;
-                
-                if (inputType === 'hex') {
-                    const guess = document.getElementById(`player${playerIndex}Guess`).value.trim();
-                    // Remove # if present for validation
-                    const hexValue = guess.startsWith('#') ? guess.substring(1) : guess;
-                    
-                    if (!validateHexColor(hexValue)) {
-                        isValid = false;
-                        errorMessage = `${players[index].name}: Please enter a valid 6-digit hex color (e.g. FF0000)`;
-                    }
-                } else {
-                    const r = document.getElementById(`player${playerIndex}R`).value;
-                    const g = document.getElementById(`player${playerIndex}G`).value;
-                    const b = document.getElementById(`player${playerIndex}B`).value;
-                    
-                    if (!r || !g || !b || isNaN(r) || isNaN(g) || isNaN(b) || 
-                        r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-                        isValid = false;
-                        errorMessage = `${players[index].name}: Please enter valid RGB values (0-255)`;
-                    }
-                }
-            });
-            
-            if (isValid) {
-                checkGuesses();
-            } else {
-                const validationError = document.getElementById('validationError');
-                validationError.textContent = errorMessage;
-                validationError.style.display = 'block';
-            }
-        }
-
-        function calculateScore(guess, target) {
-            // Ensure both have proper format
-            const formattedGuess = guess.startsWith('#') ? guess : '#' + guess;
-            const formattedTarget = target.startsWith('#') ? target : '#' + target;
-            
-            const guessR = parseInt(formattedGuess.slice(1, 3), 16);
-            const guessG = parseInt(formattedGuess.slice(3, 5), 16);
-            const guessB = parseInt(formattedGuess.slice(5, 7), 16);
-            
-            const targetR = parseInt(formattedTarget.slice(1, 3), 16);
-            const targetG = parseInt(formattedTarget.slice(3, 5), 16);
-            const targetB = parseInt(formattedTarget.slice(5, 7), 16);
-            
-            const distance = Math.sqrt(
-                Math.pow(guessR - targetR, 2) +
-                Math.pow(guessG - targetG, 2) +
-                Math.pow(guessB - targetB, 2)
-            );
-            
-            const maxDistance = Math.sqrt(3 * Math.pow(255, 2));
-            return Math.round(((maxDistance - distance) / maxDistance) * 100);
-        }
-
-        function formatHexColor(color) {
-            if (!color) return '#000000';
-            return color.startsWith('#') ? color : '#' + color;
-        }
-
-        function checkGuesses() {
-            const roundGuesses = [];
-            const roundScores = [];
-
-            players.forEach((player, index) => {
-                const guess = getPlayerGuess(index + 1);
-                const roundScore = calculateScore(guess, targetColor);
-                
-                player.score += roundScore;
-                player.roundScores.push(roundScore);
-                
-                player.scoreElement.textContent = `${player.name}: ${player.score}`;
-                
-                roundGuesses.push(guess);
-                roundScores.push(roundScore);
-            });
-
-            // Store round history
-            roundHistory.push({
-                targetColor: targetColor,
-                guesses: roundGuesses,
-                roundScores: roundScores
-            });
-
-            // Display results
-            let resultsHTML = `<div class="flex items-center justify-center gap-2 mb-4">
-                <div>Target Color: ${targetColor}</div>
-                <div class="w-6 h-6 rounded border border-gray-300" style="background-color: ${targetColor};"></div>
-            </div>`;
-            
-            // Create round scores with color display
-            let roundScoresHTML = '';
-            players.forEach((player, idx) => {
-                const formattedGuess = formatHexColor(roundGuesses[idx]);
-                roundScoresHTML += `
-                <div class="flex items-center justify-between bg-gray-100 p-2 rounded">
-                    <div class="flex items-center gap-2">
-                        <div>${player.name} guess: ${formattedGuess}</div>
-                        <div class="w-6 h-6 rounded border border-gray-300" style="background-color: ${formattedGuess};"></div>
-                    </div>
-                    <div class="font-bold">+${player.roundScores[currentRound-1]} points</div>
-                </div>`;
-            });
-            
-            document.getElementById('results').innerHTML = resultsHTML;
-            document.getElementById('roundScores').innerHTML = roundScoresHTML;
-
-            // Update round history table
-            updateRoundHistory();
-            
-            currentRound++;
-            if (currentRound <= 5) {
-                setTimeout(startNewRound, 2000);
-            } else {
-                endGame();
-            }
-        }
-
-        function endGame() {
-            let winner = players.reduce((a, b) => a.score > b.score ? a : b);
-            
-            let resultsHTML = '<h2 class="text-2xl font-bold mb-4">Game Over!</h2>';
-            resultsHTML += '<div class="bg-gray-100 p-4 rounded mb-4">';
-            
-            players.forEach((player) => {
-                resultsHTML += `<div class="mb-2"><strong>${player.name}</strong>: `;
-                player.roundScores.forEach((score, roundIndex) => {
-                    resultsHTML += `Round ${roundIndex + 1}: ${score} `;
-                });
-                resultsHTML += `<br>Total: <span class="font-bold">${player.score}</span></div>`;
-            });
-            
-            resultsHTML += '</div>';
-            resultsHTML += `<div class="text-xl font-bold text-green-600">🏆 Winner: ${winner.name} with ${winner.score} points!</div>`;
-            
-            document.getElementById('results').innerHTML = resultsHTML;
-            document.getElementById('submitGuessesBtn').disabled = true;
-            document.getElementById('submitGuessesBtn').classList.add('opacity-50', 'cursor-not-allowed');
-
-            // Ensure final round history is updated
-            updateRoundHistory();
-        }
-    </script>
-</body>
-</html>
+            // Color Picker input
